@@ -1,0 +1,208 @@
+{
+  "back_office": {
+    "scud_report":
+    {
+      "query": "SELECT CONCAT(date, '/', employee_id)  as pk, min(time_in) as start_time, max(time_out) AS finish_time, (CASE WHEN (max(time_out)>min(time_in)) THEN TIMEDIFF(max(time_out), min(time_in)) ELSE 0 END) AS dif, employment FROM scud_report WHERE date='{rday}' and employee_id={employee_id} AND (time_in !='25:00' or time_out !='-25:00') group by employee_id, employment",
+      "schema_response": {"pk": "{ts}", "start_time": "{ts}", "finish_time": "{ts}", "dif": "{ts}", "employment": "{ts}"}
+    },
+    "all_visits_view_without_apartaments":
+    {
+      "query": "SELECT task_id, time_start, time_end, form_name, commuting, patient_id, place_visit, program_name, diary_time, employment, form_id, km FROM all_visits_view WHERE form_id not in (906439, 739236, 737870, 710878, 711579) and emloyee_id={employee_id} and '{rday}' between visit_date and visit_date_end",
+      "schema_response": {"task_id": "{ts}", "start_time": "{ts}", "finish_time": "{ts}", "type_activity": "{ts}", "commuting": "{ts}", "patient_id": "{ts}", "comment": "{ts}", "program": "{ts}", "diary_time": "{ts}", "employment": "{ts}", "form_id": "{ts}", "km": "{ts}"
+      }
+    },
+    "all_visits_view_with_apartaments":
+    {
+      "query": "select visit_date as visit_date, time_start, IF(time_start > time_end, '00:00', time_end) as new_time_end, task_ids, patient_ids, diary_time, employment from (SELECT visit_date, min(time_start) as time_start, max(time_end) as time_end, GROUP_CONCAT(task_id SEPARATOR '\n') AS task_ids, GROUP_CONCAT(patient_id SEPARATOR ',') AS patient_ids, diary_time, employment FROM all_visits_view WHERE form_id=906439 and emloyee_id={employee_id} and '{rday}' between visit_date and visit_date_end group by employment, visit_date_end, visit_date, diary_time) as O union select visit_date_end as visit_date, IF(time_start > time_end, '00:00', time_start) as new_time_start, time_end, task_ids, patient_ids, diary_time, employment from (SELECT visit_date_end, min(time_start) as time_start, max(time_end) as time_end, GROUP_CONCAT(task_id SEPARATOR '\n') AS task_ids, GROUP_CONCAT(patient_id SEPARATOR ',') AS patient_ids, diary_time, employment FROM all_visits_view WHERE form_id=906439 and emloyee_id={employee_id} and '{rday}' between visit_date and visit_date_end group by employment, visit_date_end, visit_date, diary_time) as T",
+      "schema_response": {"visit_date": "{ts}", "start_time": "{ts}", "finish_time": "{ts}", "task_id": "{ts}", "patient_id": "{ts}","diary_time": "{ts}", "employment": "{ts}"}
+    },
+    "all_visits_view_nanny":
+    {
+      "query": "select visit_date as visit_date, time_start, IF(time_start > time_end, '00:00', time_end) as time_end, task_id, patient_id, diary_time, commuting, employment FROM all_visits_view WHERE form_id=737870 and emloyee_id={employee_id} and '{rday}' between visit_date and visit_date_end union select IF(time_start > time_end, visit_date_end + INTERVAL 1 DAY, visit_date_end) as visit_date, IF(time_start > time_end, '00:00', time_start) as time_start, time_end, task_id, patient_id, diary_time, commuting, employment from all_visits_view WHERE form_id=737870 and emloyee_id={employee_id} and '{rday}' between visit_date and visit_date_end",
+      "schema_response": {"visit_date": "{ts}", "start_time": "{ts}", "finish_time": "{ts}", "task_id": "{ts}", "patient_id": "{ts}","diary_time": "{ts}", "commuting": "{ts}", "employment": "{ts}"}
+    },
+    "report_coordinators_visits":
+    {
+      "query": "SELECT CONCAT(task_id, '/', visit_date, '/', employee_id)  as pk, task_id, patient_id, vibor, time_start, time_end, commuting FROM report_coordinators_visits WHERE form_id=739236 and employee_id={employee_id} and visit_date='{rday}'",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}",  "patient_id": "{ts}", "employment": "{ts}", "start_time": "{ts}", "finish_time": "{ts}", "commuting": "{ts}"}
+    },
+    "form_771324_otpusk":
+    {
+      "query": "SELECT CONCAT(pk, '/', start_date, '/', employee_id)  as pk, task_id, employment, start_date, finish_date FROM form_771324_otpusk WHERE employee_id={employee_id} and '{rday}' between start_date and finish_date and status not in (1,3)",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment": "{ts}", "start_date": "{ts}", "finish_date": "{ts}"}
+    },
+    "form_907281_otgul":
+    {
+      "query": "SELECT pk, task_id, employment, comment, duration FROM form_907281_otgul WHERE employee_id={employee_id} and date='{rday}' and status=1",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment": "{ts}", "comment": "{ts}", "commuting": "{ts}"}
+    },
+    "form_861479_bolnichniy":
+    {
+      "query": "SELECT CONCAT(pk, '/', start_date, '/', employee_id)  as pk, task_id, employment, start_date, finish_date FROM form_861479_bolnichniy WHERE employee_id={employee_id} and '{rday}' between start_date and finish_date and status!='checked'",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment": "{ts}", "start_date": "{ts}", "finish_date": "{ts}"}
+    },
+    "form_1003711_feedback":
+    {
+      "query": "SELECT pk, task_id, employment, start_time, finish_time, duration, os_time, break_time FROM form_1003711_feedback WHERE employee_id={employee_id} and date_activity='{rday}' and presence!=2",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment": "{ts}", "start_time": "{ts}", "finish_time": "{ts}", "duration": "{ts}", "os_time": "{ts}", "break_time": "{ts}"}
+    },
+    "form_protocols":
+    {
+      "query": "SELECT pk, task_id, employment, start_time, finish_time FROM form_protocols WHERE employee_id={employee_id} and date_meeting='{rday}' and absence!=3",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment": "{ts}", "start_time": "{ts}", "finish_time":"{ts}"}
+    },
+    "form_961352_hotline":
+    {
+      "query": "select pk, task_id, start_date, finish_date, employment, start_time, finish_time from form_961352_hotline where employee_id={employee_id} and  start_date='{rday}'",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "start_date": "{ts}", "finish_date": "{ts}", "employment": "{ts}", "start_time": "{ts}", "finish_time": "{ts}"}
+    },
+    "form_776405_events":
+    {
+      "query": "SELECT pk, task_id, employment, start_time, finish_time, type_activity, comment, conditions FROM form_776405_events WHERE employee_id={employee_id} and start_date='{rday}'",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment": "{ts}", "start_time": "{ts}", "finish_time": "{ts}", "type_activity": "{ts}", "comment": "{ts}", "conditions": "{ts}"}
+    },
+    "form_894245_activity":
+    {
+      "query": "SELECT pk, task_id, employment, type_activity, start_time, finish_time, commuting, comment, overtime FROM form_894245_activity WHERE employee_id={employee_id} and date_activity='{rday}' and step>2 and (solution=1 or solution is null)",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment": "{ts}", "type_activity":"{ts}", "start_time": "{ts}", "finish_time": "{ts}", "commuting": "{ts}", "comment": "{ts}", "overtime": "{ts}"}
+    },
+    "form_913966_duty":
+    {
+      "query": "SELECT pk, task_id, employment, start_time, finish_time FROM form_913966_duty WHERE employee_id={employee_id} and date_work='{rday}'",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment": "{ts}", "start_time": "{ts}", "finish_time":"{ts}"}
+      },
+    "form_858314_planned_visit":
+    {
+      "query": "SELECT pk, task_id, employment, commuting FROM form_858314_planned_visit WHERE employee_id={employee_id} and date_visit='{rday}' and result in (2)",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment":"{ts}","commuting":"{ts}"}
+      },
+    "form_857478_supervision":
+    {
+      "query": "SELECT CONCAT(pk, '/', date_supervision, '/', employee_id)  as pk, task_id, employment, start_time, finish_time, time_onroad FROM form_857478_supervision WHERE employee_id={employee_id} and date_supervision='{rday}'",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment":"{ts}", "start_time": "{ts}", "finish_time":"{ts}", "commuting": "{ts}"}
+    },
+    "form_828902_without_pass":
+    {
+      "query": "SELECT pk, task_id, employment, time_in, time_out, comment FROM form_828902_without_pass WHERE employee_id={employee_id} and visit_date='{rday}'",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment":"{ts}", "start_time": "{ts}", "finish_time":"{ts}", "comment": "{ts}"}
+    },
+    "form_fundraising":
+    {
+      "query": "SELECT pk, task_id, employment, start_time, finish_time, comment FROM form_fundraising WHERE employee_id={employee_id} and date_activity='{rday}' and solution=1",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment":"{ts}", "start_time": "{ts}", "finish_time":"{ts}", "comment": "{ts}"}
+    },
+    "form_805659_plan_od":
+    {
+      "query": "SELECT pk, task_id, employment, start_time, finish_time FROM form_805659_plan_od WHERE employee_id={employee_id} and date_activity='{rday}'",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment":"{ts}", "start_time": "{ts}", "finish_time":"{ts}"}
+    },
+    "form_872435_edu_calendar":
+    {
+      "query": "SELECT task_id, thema, time_start_str, time_finish_str, employment from educ_calendary_view where lector_catalog_item_id={employee_id} and date_event='{rday}' group by task_id, thema, time_start_str, time_finish_str, employment",
+      "schema_response": {"task_id": "{ts}", "comment": "{ts}", "start_time": "{ts}", "finish_time":"{ts}", "employment":"{ts}"}
+    }
+  },
+  "visiting_service": {
+    "scud_report":
+    {
+      "query": "SELECT CONCAT(date, '/', employee_id)  as pk, min(time_in) as start_time, max(time_out) AS finish_time, (CASE WHEN (max(time_out)>min(time_in)) THEN TIMEDIFF(max(time_out), min(time_in)) ELSE 0 END) AS dif, employment FROM scud_report WHERE date='{rday}' and employee_id={employee_id} AND (time_in !='25:00' or time_out !='-25:00') group by employee_id, employment",
+      "schema_response": {"pk": "{ts}", "start_time": "{ts}", "finish_time": "{ts}", "dif": "{ts}", "employment": "{ts}"}
+    },
+    "all_visits_view_without_apartaments":
+    {
+      "query": "SELECT task_id, time_start, time_end, form_name, commuting, patient_id, place_visit, program_name, diary_time, employment, form_id, km FROM all_visits_view WHERE form_id not in (906439, 739236, 737870, 710878, 711579) and emloyee_id={employee_id} and '{rday}' between visit_date and visit_date_end",
+      "schema_response": {"task_id": "{ts}", "start_time": "{ts}", "finish_time": "{ts}", "type_activity": "{ts}", "commuting": "{ts}", "patient_id": "{ts}", "comment": "{ts}", "program": "{ts}", "diary_time": "{ts}", "employment": "{ts}", "form_id": "{ts}", "km": "{ts}"
+      }
+    },
+    "all_visits_view_with_apartaments":
+    {
+      "query": "select visit_date as visit_date, time_start, IF(time_start > time_end, '00:00', time_end) as new_time_end, task_ids, patient_ids, diary_time, employment from (SELECT visit_date, min(time_start) as time_start, max(time_end) as time_end, GROUP_CONCAT(task_id SEPARATOR '\n') AS task_ids, GROUP_CONCAT(patient_id SEPARATOR ',') AS patient_ids, diary_time, employment FROM all_visits_view WHERE form_id=906439 and emloyee_id={employee_id} and '{rday}' between visit_date and visit_date_end group by employment, visit_date_end, visit_date, diary_time) as O union select visit_date_end as visit_date, IF(time_start > time_end, '00:00', time_start) as new_time_start, time_end, task_ids, patient_ids, diary_time, employment from (SELECT visit_date_end, min(time_start) as time_start, max(time_end) as time_end, GROUP_CONCAT(task_id SEPARATOR '\n') AS task_ids, GROUP_CONCAT(patient_id SEPARATOR ',') AS patient_ids, diary_time, employment FROM all_visits_view WHERE form_id=906439 and emloyee_id={employee_id} and '{rday}' between visit_date and visit_date_end group by employment, visit_date_end, visit_date, diary_time) as T",
+      "schema_response": {"visit_date": "{ts}", "start_time": "{ts}", "finish_time": "{ts}", "task_id": "{ts}", "patient_id": "{ts}","diary_time": "{ts}", "employment": "{ts}"}
+    },
+    "all_visits_view_nanny":
+    {
+      "query": "select visit_date as visit_date, time_start, IF(time_start > time_end, '00:00', time_end) as time_end, task_id, patient_id, diary_time, commuting, employment FROM all_visits_view WHERE form_id=737870 and emloyee_id={employee_id} and '{rday}' between visit_date and visit_date_end union select IF(time_start > time_end, visit_date_end + INTERVAL 1 DAY, visit_date_end) as visit_date, IF(time_start > time_end, '00:00', time_start) as time_start, time_end, task_id, patient_id, diary_time, commuting, employment from all_visits_view WHERE form_id=737870 and emloyee_id={employee_id} and '{rday}' between visit_date and visit_date_end",
+      "schema_response": {"visit_date": "{ts}", "start_time": "{ts}", "finish_time": "{ts}", "task_id": "{ts}", "patient_id": "{ts}","diary_time": "{ts}", "commuting": "{ts}", "employment": "{ts}"}
+    },
+    "report_coordinators_visits":
+    {
+      "query": "SELECT CONCAT(task_id, '/', visit_date, '/', employee_id)  as pk, task_id, patient_id, vibor, time_start, time_end, commuting FROM report_coordinators_visits WHERE form_id=739236 and employee_id={employee_id} and visit_date='{rday}'",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}",  "patient_id": "{ts}", "employment": "{ts}", "start_time": "{ts}", "finish_time": "{ts}", "commuting": "{ts}"}
+    },
+    "form_771324_otpusk":
+    {
+      "query": "SELECT CONCAT(pk, '/', start_date, '/', employee_id)  as pk, task_id, employment, start_date, finish_date FROM form_771324_otpusk WHERE employee_id={employee_id} and '{rday}' between start_date and finish_date and status not in (1,3)",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment": "{ts}", "start_date": "{ts}", "finish_date": "{ts}"}
+    },
+    "form_907281_otgul":
+    {
+      "query": "SELECT pk, task_id, employment, comment, duration FROM form_907281_otgul WHERE employee_id={employee_id} and date='{rday}' and status=1",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment": "{ts}", "comment": "{ts}", "commuting": "{ts}"}
+    },
+    "form_861479_bolnichniy":
+    {
+      "query": "SELECT CONCAT(pk, '/', start_date, '/', employee_id)  as pk, task_id, employment, start_date, finish_date FROM form_861479_bolnichniy WHERE employee_id={employee_id} and '{rday}' between start_date and finish_date and status!='checked'",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment": "{ts}", "start_date": "{ts}", "finish_date": "{ts}"}
+    },
+    "form_1003711_feedback":
+    {
+      "query": "SELECT pk, task_id, employment, start_time, finish_time, duration, os_time, break_time FROM form_1003711_feedback WHERE employee_id={employee_id} and date_activity='{rday}' and presence!=2",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment": "{ts}", "start_time": "{ts}", "finish_time": "{ts}", "duration": "{ts}", "os_time": "{ts}", "break_time": "{ts}"}
+    },
+    "form_protocols":
+    {
+      "query": "SELECT pk, task_id, employment, start_time, finish_time FROM form_protocols WHERE employee_id={employee_id} and date_meeting='{rday}' and absence!=3",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment": "{ts}", "start_time": "{ts}", "finish_time":"{ts}"}
+    },
+    "form_961352_hotline":
+    {
+      "query": "select pk, task_id, start_date, finish_date, employment, start_time, finish_time from form_961352_hotline where employee_id={employee_id} and  start_date='{rday}'",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "start_date": "{ts}", "finish_date": "{ts}", "employment": "{ts}", "start_time": "{ts}", "finish_time": "{ts}"}
+    },
+    "form_776405_events":
+    {
+      "query": "SELECT pk, task_id, employment, start_time, finish_time, type_activity, comment, conditions FROM form_776405_events WHERE employee_id={employee_id} and start_date='{rday}'",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment": "{ts}", "start_time": "{ts}", "finish_time": "{ts}", "type_activity": "{ts}", "comment": "{ts}", "conditions": "{ts}"}
+    },
+    "form_894245_activity":
+    {
+      "query": "SELECT pk, task_id, employment, type_activity, start_time, finish_time, commuting, comment, overtime FROM form_894245_activity WHERE employee_id={employee_id} and date_activity='{rday}' and step>2 and (solution=1 or solution is null)",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment": "{ts}", "type_activity":"{ts}", "start_time": "{ts}", "finish_time": "{ts}", "commuting": "{ts}", "comment": "{ts}", "overtime": "{ts}"}
+    },
+    "form_913966_duty":
+    {
+      "query": "SELECT pk, task_id, employment, start_time, finish_time FROM form_913966_duty WHERE employee_id={employee_id} and date_work='{rday}'",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment": "{ts}", "start_time": "{ts}", "finish_time":"{ts}"}
+      },
+    "form_858314_planned_visit":
+    {
+      "query": "SELECT pk, task_id, employment, commuting FROM form_858314_planned_visit WHERE employee_id={employee_id} and date_visit='{rday}' and result in (2)",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment":"{ts}","commuting":"{ts}"}
+      },
+    "form_857478_supervision":
+    {
+      "query": "SELECT CONCAT(pk, '/', date_supervision, '/', employee_id)  as pk, task_id, employment, start_time, finish_time, time_onroad FROM form_857478_supervision WHERE employee_id={employee_id} and date_supervision='{rday}'",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment":"{ts}", "start_time": "{ts}", "finish_time":"{ts}", "commuting": "{ts}"}
+    },
+    "form_828902_without_pass":
+    {
+      "query": "SELECT pk, task_id, employment, time_in, time_out, comment FROM form_828902_without_pass WHERE employee_id={employee_id} and visit_date='{rday}'",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment":"{ts}", "start_time": "{ts}", "finish_time":"{ts}", "comment": "{ts}"}
+    },
+    "form_fundraising":
+    {
+      "query": "SELECT pk, task_id, employment, start_time, finish_time, comment FROM form_fundraising WHERE employee_id={employee_id} and date_activity='{rday}' and solution=1",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment":"{ts}", "start_time": "{ts}", "finish_time":"{ts}", "comment": "{ts}"}
+    },
+    "form_805659_plan_od":
+    {
+      "query": "SELECT pk, task_id, employment, start_time, finish_time FROM form_805659_plan_od WHERE employee_id={employee_id} and date_activity='{rday}'",
+      "schema_response": {"pk": "{ts}", "task_id": "{ts}", "employment":"{ts}", "start_time": "{ts}", "finish_time":"{ts}"}
+    },
+    "form_872435_edu_calendar":
+    {
+      "query": "SELECT task_id, thema, time_start_str, time_finish_str, employment from educ_calendary_view where lector_catalog_item_id={employee_id} and date_event='{rday}' group by task_id, thema, time_start_str, time_finish_str, employment",
+      "schema_response": {"task_id": "{ts}", "comment": "{ts}", "start_time": "{ts}", "finish_time":"{ts}", "employment":"{ts}"}
+    }
+  }
+  }

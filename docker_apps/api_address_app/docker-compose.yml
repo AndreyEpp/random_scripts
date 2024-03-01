@@ -1,0 +1,32 @@
+version: "3.7"
+services:
+  db:
+    image: mysql
+    container_name: database_app
+    env_file:
+      - .env
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: xxxx
+  app:
+    build:
+      context: ../api_address_app
+    env_file:
+      - ../api_address_app/.env
+    container_name: fastapi_patient_app
+    restart: always
+    ports:
+      - "80:8000"
+    depends_on:
+      - db
+  # nginx service
+  web:
+    container_name: "web"
+    image: nginx:alpine
+    restart: always
+    depends_on:
+      - app
+    ports:
+      - "8000:80"
+    volumes:
+      - ./app/conf.d:/etc/nginx/conf.d
